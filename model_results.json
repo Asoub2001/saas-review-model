@@ -1,0 +1,22 @@
+import json
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Create results dictionary
+results = {
+    "Logistic Regression (Weighted)": {
+        "report": classification_report(y_test, y_pred_weighted, target_names=label_encoder.classes_),
+        "conf_matrix": confusion_matrix(y_test, y_pred_weighted).tolist()
+    },
+    "Naive Bayes": {
+        "report": classification_report(y_test, y_pred_nb, target_names=label_encoder.classes_),
+        "conf_matrix": confusion_matrix(y_test, y_pred_nb).tolist()
+    }
+}
+
+# Save to JSON file
+with open("model_results.json", "w") as f:
+    json.dump(results, f)
+
+# Download file
+from google.colab import files
+files.download("model_results.json")
