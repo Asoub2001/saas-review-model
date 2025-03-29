@@ -6,7 +6,14 @@ from wordcloud import WordCloud
 import json
 
 # Load dataset
-df = pd.read_csv("https://drive.google.com/file/d/1p0wvC6rZN26w3CDxhTkFY8PUFDYEMhfH/view?usp=drive_link")
+import pandas as pd
+
+try:
+    df = pd.read_csv("https://drive.google.com/uc?export=download&id=1p0wvC6rZN26w3CDxhTkFY8PUFDYEMhfH")
+except pd.errors.ParserError as e:
+    print("ParserError:", e)
+except Exception as e:
+    print("Error:", e)
 
 # Load model results
 with open("model_results.json", "r") as f:
