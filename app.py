@@ -6,7 +6,7 @@ from wordcloud import WordCloud
 import json
 
 # Load dataset
-df = pd.read_csv("cleaned_combined_reviews.csv")
+df = pd.read_csv("https://drive.google.com/uc?export=download&id=YOUR_FILE_ID")
 
 # Load model results
 with open("model_results.json", "r") as f:
