@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import json
 
-# Load dataset
-import pandas as pd
-
+# --- Load dataset from Google Drive ---
 try:
     df = pd.read_csv("https://drive.google.com/uc?export=download&id=1p0wvC6rZN26w3CDxhTkFY8PUFDYEMhfH")
-except pd.errors.ParserError as e:
-    print("ParserError:", e)
+    if "sentiment" not in df.columns:
+        st.error("❌ The dataset did not load correctly. Column 'sentiment' not found.")
+        st.stop()
 except Exception as e:
-    print("Error:", e)
+    st.error(f"❌ Failed to load dataset: {e}")
+    st.stop()
 
 # Load model results
 with open("model_results.json", "r") as f:
