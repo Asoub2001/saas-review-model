@@ -1,99 +1,77 @@
-# SaaS Product Reviews Sentiment Dashboard
+# SaaS Product Reviews Sentiment Dashboard & Classifier
 
-This project analyzes customer reviews of SaaS products using sentiment analysis. It uses data from **Amazon** and **Trustpilot**, applies machine learning models (Logistic Regression and Naive Bayes), and presents the results through an interactive dashboard built with **Streamlit**.
-
----
-
-## 📊 Features
-
-- Sentiment classification (Positive, Neutral, Negative)
-- Model comparison (Weighted Logistic Regression vs Naive Bayes)
-- Word clouds per sentiment
-- Sentiment distribution bar chart
-- Classification reports and confusion matrices
-- Model toggle in the dashboard
+This project analyzes customer reviews of SaaS products using sentiment analysis.  
+It uses real-world review data from **Amazon** and **Trustpilot**, compares two machine learning models, and lets users try live predictions using the best model — all through an interactive Streamlit dashboard.
 
 ---
 
-## 📁 Files in This Project
-📁 saas-review-dashboard ├── app.py # Streamlit dashboard application ├── SaaS_Review_Sentiment_Modeling.ipynb # Google Colab notebook (full analysis) ├── cleaned_combined_reviews.csv # Cleaned and labeled dataset ├── model_results.json # Classification reports & confusion matrices ├── requirements.txt # Dependencies for Streamlit └── README.md # Project documentation
+## ✨ Features
 
+- 📊 **Dashboard View**:
+  - Sentiment distribution bar chart
+  - Word clouds per sentiment (Positive, Neutral, Negative)
+  - Model comparison: Logistic Regression vs Naive Bayes
+  - Classification reports and confusion matrices
+
+- 🧠 **Live Prediction View**:
+  - Type in your own review
+  - Get instant sentiment prediction using the best model
+  - See the model’s confidence in the prediction
 
 ---
 
-## 📚 Data Sources
+## 📁 Project Structure
 
-- Amazon Reviews: [Kaggle Dataset](https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews)
-- Trustpilot (Sample scraped/exported reviews)
+📦 saas-review-model/ ├── app.py # Streamlit dashboard + prediction app ├── cleaned_combined_reviews.csv # Preprocessed review dataset (reduced) ├── model_results.json # Evaluation results for both models ├── tfidf_vectorizer.pkl # Trained TF-IDF vectorizer ├── logreg_model.pkl # Trained Logistic Regression model ├── label_encoder.pkl # Label encoder used for predictions ├── requirements.txt # Dependencies └── README.md # You're reading it
+
 
 ---
 
 ## 🤖 Models Used
 
-- **Weighted Logistic Regression** (handles class imbalance)
-- **Multinomial Naive Bayes**
+- **Logistic Regression** with class weights (`class_weight='balanced'`) ✅ Used for live predictions
+- **Multinomial Naive Bayes** for comparison
 
-Both models were evaluated using precision, recall, F1-score, and confusion matrices.
+Both models were trained on a labeled version of the review dataset and evaluated using:
+- Precision, Recall, F1-score
+- Confusion matrix
+- Macro & Weighted Averages
 
 ---
 
-## 🚀 How to Run the Dashboard
+## 🚀 How to Run the App
 
-### ✅ Option 1: Streamlit Cloud (Recommended)
+### 🔗 Option 1: [Streamlit Cloud](https://share.streamlit.io) (Recommended)
 
-1. Fork or clone this repo.
-2. Visit [https://share.streamlit.io](https://share.streamlit.io)
-3. Click “New App”
-4. Select this repo, choose `main` branch and `app.py`
+1. Fork this repo or upload your own
+2. Go to: [https://share.streamlit.io](https://share.streamlit.io)
+3. Click **“New App”**
+4. Choose this repo → main branch → `app.py`
 5. Click **Deploy**
 
-Done! You’ll get a public dashboard link.
+Your app will go live instantly 🎉
 
 ---
 
 ### 💻 Option 2: Run Locally
 
-Install requirements:
+1. Clone this repo
+2. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
-Run the app:
 
-bash
-Copy
-Edit
+Run the app:
 streamlit run app.py
 
-📓 Google Colab Notebook
-The notebook SaaS_Review_Sentiment_Modeling.ipynb includes:
+📓 Data Sources
+Amazon Fine Food Reviews (via Kaggle)
 
-Data loading, cleaning, and preprocessing
+Trustpilot Reviews (2022 snapshot)
 
-Sentiment labeling from review scores
-
-Text vectorization using TF-IDF
-
-Model training and evaluation
-
-Export of model results as JSON for dashboard
-
-🔧 Requirements
-All needed packages are listed in requirements.txt. Key ones include:
-
-streamlit
-
-pandas
-
-matplotlib
-
-wordcloud
-
-scikit-learn
+Combined and labeled with sentiment scores
 
 👤 Author
-Abdalla Soub (Asoub2001)
-MSc Data Science
-University of Sunderland
+Abdalla Soub
+University of Sunderland – MSc Data Science
 Module: CETM46 – Data Science Product Development
-
-
