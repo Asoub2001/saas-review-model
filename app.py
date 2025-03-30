@@ -55,59 +55,37 @@ def remove_stopwords(text):
 
 # --- Streamlit App Layout ---
 st.set_page_config(page_title="SaaS Sentiment Dashboard", layout="wide")
-st.title("📊 SaaS Product Reviews Sentiment App")
-st.markdown("Toggle between dashboard insights and a live prediction tool.")
 
-# --- Sidebar Toggle ---
-mode = st.sidebar.radio("Choose Mode", ["Dashboard", "Live Prediction"])
+st.title("🧠 SaaS Reviews Sentiment Analyzer")
 
-if mode == "Dashboard":
-    # Load model results from JSON
-    try:
-        with open("model_results.json", "r") as f:
-            results = json.load(f)
-    except:
-        st.error("Model results not found. Please upload 'model_results.json'.")
-        st.stop()
+# --- About the App ---
+st.markdown("""
+### About the App
+This app analyzes customer reviews of SaaS products (like CRM, cloud tools, and software platforms) using machine learning.
 
-    model_choice = st.sidebar.selectbox("Select Model to View Results", list(results.keys()))
+- 🗂️ Data from **Amazon** and **Trustpilot**
+- 🧠 Uses a **Logistic Regression** model trained on thousands of real reviews
+- 🧪 Explore insights in the **Dashboard tab**
+- ✍️ Try your own review in the **Live Prediction tab** (this page)
 
-    # Section 1: Sentiment Distribution
-    st.subheader("Sentiment Distribution")
-    sentiment_counts = df["sentiment"].value_counts()
-    fig1, ax1 = plt.subplots()
-    ax1.bar(sentiment_counts.index, sentiment_counts.values, color=["green", "orange", "red"])
-    ax1.set_title("Sentiment Counts")
-    ax1.set_ylabel("Number of Reviews")
-    st.pyplot(fig1)
+We selected the **best-performing model** based on accuracy and F1-score for live use.
+""")
 
-    # Section 2: Word Clouds by Sentiment
-    st.subheader("Word Clouds by Sentiment")
-    col1, col2, col3 = st.columns(3)
-    for sentiment, col in zip(["Positive", "Neutral", "Negative"], [col1, col2, col3]):
-        text = " ".join(df[df["sentiment"] == sentiment]["clean_text"])
-        wordcloud = WordCloud(width=300, height=200, background_color="white").generate(text)
-        col.image(wordcloud.to_array(), caption=sentiment)
+# --- Sidebar Toggle (Live Prediction first) ---
+mode = st.sidebar.radio("Choose Mode", ["Live Prediction", "Dashboard"])
 
-    # Section 3: Model Comparison
-    st.subheader(f"Model Performance - {model_choice}")
-    model_data = results[model_choice]
-    st.text("Classification Report")
-    st.text(model_data["report"])
+# --- Live Prediction View ---
+if mode == "Live Prediction":
+    st.subheader("✍️ Try It Yourself")
+    st.markdown("""
+    Enter a customer review about a software product below (e.g.:
 
-    if "conf_matrix" in model_data:
-        conf_matrix = pd.DataFrame(model_data["conf_matrix"],
-                                   index=["Negative", "Neutral", "Positive"],
-                                   columns=["Predicted Negative", "Predicted Neutral", "Predicted Positive"])
-        st.subheader("Confusion Matrix")
-        st.dataframe(conf_matrix)
+    > *"This app makes invoicing so simple, I can't imagine switching to anything else!"*
 
-    st.markdown("---")
-    st.caption("Built with Streamlit | Models: Logistic Regression, Naive Bayes")
+    Then click **Predict Sentiment** to see how the model classifies it.
+    """)
 
-elif mode == "Live Prediction":
-    st.subheader("🧠 Try the Sentiment Classifier!")
-    user_input = st.text_area("Enter a customer review:", height=150)
+    user_input = st.text_area("Write your review:", height=150)
 
     if st.button("Predict Sentiment"):
         if user_input.strip() == "":
@@ -122,4 +100,52 @@ elif mode == "Live Prediction":
             label = label_encoder.inverse_transform([prediction])[0]
 
             st.success(f"✅ Predicted Sentiment: **{label}**")
-            st.markdown(f"🔍 **Confidence**: `{confidence:.2%}`")
+            st.markdown(f"🔍 **Model Confidence**: `{confidence:.2%}`")
+
+# --- Dashboard View ---
+elif mode == "Dashboard":
+    st.subheader("📊 SaaS Review Insights Dashboard")
+    st.markdown("Explore patterns and trends in thousands of SaaS product reviews.")
+
+    try:
+        with open("model_results.json", "r") as f:
+            results = json.load(f)
+    except:
+        st.error("Model results not found. Please upload 'model_results.json'.")
+        st.stop()
+
+    model_choice = st.sidebar.selectbox("Select Model to View Results", list(results.keys()))
+
+    # Sentiment Distribution
+    st.subheader("Overall Sentiment Distribution")
+    sentiment_counts = df["sentiment"].value_counts()
+    fig1, ax1 = plt.subplots()
+    ax1.bar(sentiment_counts.index, sentiment_counts.values, color=["green", "orange", "red"])
+    ax1.set_ylabel("Number of Reviews")
+    ax1.set_title("Sentiment Counts (All Reviews)")
+    st.pyplot(fig1)
+
+    # Word Clouds
+    st.subheader("Most Frequent Words by Sentiment")
+    col1, col2, col3 = st.columns(3)
+    for sentiment, col in zip(["Positive", "Neutral", "Negative"], [col1, col2, col3]):
+        text = " ".join(df[df["sentiment"] == sentiment]["clean_text"])
+        wordcloud = WordCloud(width=300, height=200, background_color="white").generate(text)
+        col.image(wordcloud.to_array(), caption=sentiment)
+
+    # Model Report
+    st.subheader(f"Model Performance – {model_choice}")
+    model_data = results[model_choice]
+    st.text("Classification Report")
+    st.text(model_data["report"])
+
+    # Confusion Matrix
+    if "conf_matrix" in model_data:
+        conf_matrix = pd.DataFrame(model_data["conf_matrix"],
+                                   index=["Negative", "Neutral", "Positive"],
+                                   columns=["Predicted Negative", "Predicted Neutral", "Predicted Positive"])
+        st.subheader("Confusion Matrix")
+        st.dataframe(conf_matrix)
+
+    st.markdown("---")
+    st.caption("Built with Streamlit | Dataset: Amazon + Trustpilot | ML Models: Logistic Regression, Naive Bayes")
