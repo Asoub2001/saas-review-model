@@ -6,15 +6,33 @@ from wordcloud import WordCloud
 import json
 import joblib
 import re
-from nltk.corpus import stopwords
-import nltk
-nltk.download('stopwords')
+
+# --- Hardcoded English stopwords ---
+stop_words = set([
+    'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves',
+    'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 
+    'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its',
+    'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what',
+    'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am',
+    'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has',
+    'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the',
+    'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of',
+    'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into',
+    'through', 'during', 'before', 'after', 'above', 'below', 'to',
+    'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under',
+    'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where',
+    'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most',
+    'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same',
+    'so', 'than', 'too', 'very', 'can', 'will', 'just', 'don', 'should',
+    'now'
+])
 
 # --- Load model & vectorizer ---
 vectorizer = joblib.load("tfidf_vectorizer.pkl")
 model = joblib.load("logreg_model.pkl")
-label_encoder = joblib.load("label_encoder.pkl")  # Optional if you're using encoded labels
+label_encoder = joblib.load("label_encoder.pkl")
 
+# --- Load reduced dataset for dashboard ---
 try:
     df = pd.read_csv("cleaned_combined_reviews.csv")
     if "sentiment" not in df.columns:
@@ -24,11 +42,7 @@ except Exception as e:
     st.error(f"❌ Failed to load dataset: {e}")
     st.stop()
 
-    
-
 # --- Cleaning functions ---
-stop_words = set(stopwords.words('english'))
-
 def clean_text(text):
     text = text.lower()
     text = re.sub(r'<.*?>', '', text)
