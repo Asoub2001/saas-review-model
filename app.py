@@ -19,7 +19,7 @@ label_encoder = joblib.load("label_encoder.pkl")  # Optional if you're using enc
 try:
     df = pd.read_csv("cleaned_combined_reviews.csv")
     if "sentiment" not in df.columns:
-        st.error("❌ The dataset did not load correctly. Column 'sentiment' not found.")
+        st.error("❌ The dataset did not load correct. Column 'sentiment' not found.")
         st.stop()
 except Exception as e:
     st.error(f"❌ Failed to load dataset: {e}")
