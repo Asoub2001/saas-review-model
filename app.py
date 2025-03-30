@@ -16,14 +16,8 @@ model = joblib.load("logreg_model.pkl")
 label_encoder = joblib.load("label_encoder.pkl")  # Optional if you're using encoded labels
 
 # --- Load reduced dataset for dashboard ---
-try:
     df = pd.read_csv("cleaned_combined_reviews.csv")
-    if "sentiment" not in df.columns:
-        st.error("❌ The dataset did not load correct. Column 'sentiment' not found.")
-        st.stop()
-except Exception as e:
-    st.error(f"❌ Failed to load dataset: {e}")
-    st.stop()
+    
 
 # --- Cleaning functions ---
 stop_words = set(stopwords.words('english'))
