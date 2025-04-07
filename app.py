@@ -1,4 +1,3 @@
-
 # app.py
 import streamlit as st
 import pandas as pd
@@ -34,8 +33,8 @@ stop_words = set([
 def clean_text(text):
     text = text.lower()
     text = re.sub(r'<.*?>', '', text)
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r'[^a-zA-Z\\s]', '', text)
+    text = re.sub(r'\\s+', ' ', text).strip()
     return text
 
 def remove_stopwords(text):
@@ -47,16 +46,16 @@ st.title("📊 SaaS Product Review Sentiment Analysis")
 st.markdown("Welcome! This app allows you to predict sentiment for any review and explore dashboard insights based on real Amazon/Trustpilot reviews.")
 
 # Sidebar toggle
-mode = st.sidebar.radio("Choose Mode", ["Live Prediction", "Dashboard"])
+mode = st.sidebar.radio("Choose View", ["Live Prediction", "Dashboard"])
 
 # === LIVE PREDICTION ===
 if mode == "Live Prediction":
-    st.subheader("🔮 Predict Sentiment from a Review")
-    st.markdown("✏️ Enter a review below. Example: *'The app crashes every time I log in.'*")
+    st.subheader("🔮 Live Sentiment Prediction")
+    st.markdown("✏️ **How to use:** Enter a review below (e.g. _'The software is easy to use and powerful.'_) then click Predict.")
 
-    user_input = st.text_area("Enter Review Text:", height=150)
+    user_input = st.text_area("📝 Enter your SaaS review:")
 
-    if st.button("Predict Sentiment"):
+    if st.button("🔍 Predict Sentiment"):
         if user_input.strip() == "":
             st.warning("Please enter a review.")
         else:
@@ -68,8 +67,14 @@ if mode == "Live Prediction":
             confidence = max(probs)
             label = label_encoder.inverse_transform([prediction])[0]
 
-            st.success(f"✅ Predicted Sentiment: **{label}**")
-            st.markdown(f"🔍 **Confidence**: `{confidence:.2%}`")
+            color_map = {
+                "Positive": "green",
+                "Neutral": "orange",
+                "Negative": "red"
+            }
+
+            st.markdown(f"<h3 style='color:{color_map[label]}'>✅ Sentiment: {label}</h3>", unsafe_allow_html=True)
+            st.markdown(f"🔍 <b>Confidence:</b> `{confidence:.2%}`", unsafe_allow_html=True)
 
 # === DASHBOARD ===
 elif mode == "Dashboard":
@@ -93,6 +98,19 @@ elif mode == "Dashboard":
     ax1.set_ylabel("Number of Reviews")
     st.pyplot(fig1)
 
+    # Pie chart
+    st.subheader("Sentiment Proportion (Pie Chart)")
+    fig2, ax2 = plt.subplots()
+    ax2.pie(sentiment_counts.values, labels=sentiment_counts.index, autopct="%1.1f%%",
+            colors=["green", "orange", "red"], startangle=90)
+    st.pyplot(fig2)
+
+    # Source comparison chart
+    st.subheader("Sentiment by Source")
+    source_counts = df.groupby(["source", "sentiment"]).size().unstack().fillna(0)
+    source_counts.plot(kind="bar", stacked=True, color=["blue", "lightskyblue", "red"])
+    st.pyplot(plt.gcf())
+
     # Word clouds
     st.subheader("Word Clouds by Sentiment")
     col1, col2, col3 = st.columns(3)
@@ -100,6 +118,15 @@ elif mode == "Dashboard":
         text = " ".join(df[df["sentiment"] == sentiment]["clean_text"])
         wordcloud = WordCloud(width=300, height=200, background_color="white").generate(text)
         col.image(wordcloud.to_array(), caption=sentiment)
+
+    # Top keywords
+    st.subheader("🧠 Top Keywords by Sentiment")
+    for sentiment in ["Positive", "Neutral", "Negative"]:
+        st.markdown(f"**{sentiment} Reviews:**")
+        subset = df[df["sentiment"] == sentiment]
+        all_words = " ".join(subset["clean_text"]).split()
+        keywords = pd.Series([w for w in all_words if w not in stop_words]).value_counts().head(10)
+        st.dataframe(pd.DataFrame({"Keyword": keywords.index, "Count": keywords.values}))
 
     # Model Comparison
     st.subheader(f"📈 Model Performance - {model_choice}")
