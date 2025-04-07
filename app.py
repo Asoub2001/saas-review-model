@@ -14,7 +14,7 @@ vectorizer = joblib.load("tfidf_vectorizer.pkl")
 label_encoder = joblib.load("label_encoder.pkl")
 
 # --- Load dataset for dashboard ---
-df = pd.read_csv("cleaned_combined_reviews_reduced.csv")
+df = pd.read_csv("cleaned_combined_reviews.csv")
 
 # --- Cleaning functions (for live prediction) ---
 stop_words = set([
