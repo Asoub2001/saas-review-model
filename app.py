@@ -12,10 +12,10 @@ model = joblib.load("xgboost_model.pkl")
 vectorizer = joblib.load("tfidf_vectorizer.pkl")
 label_encoder = joblib.load("label_encoder.pkl")
 
-# --- Load dataset for dashboard ---
-df = pd.read_csv("cleaned_combined_reviews.csv")
+# --- Load reduced dataset for dashboard ---
+df = pd.read_csv("cleaned_combined_reviews_.csv")
 
-# --- Cleaning functions (for live prediction) ---
+# --- Stopwords & Cleaning functions ---
 stop_words = set([
     'i','me','my','myself','we','our','ours','ourselves','you','your','yours',
     'yourself','yourselves','he','him','his','himself','she','her','hers','herself',
@@ -33,25 +33,25 @@ stop_words = set([
 def clean_text(text):
     text = text.lower()
     text = re.sub(r'<.*?>', '', text)
-    text = re.sub(r'[^a-zA-Z\\s]', '', text)
-    text = re.sub(r'\\s+', ' ', text).strip()
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
     return text
 
 def remove_stopwords(text):
     return ' '.join([word for word in text.split() if word not in stop_words])
 
-# --- Streamlit Layout ---
+# --- UI Setup ---
 st.set_page_config(page_title="SaaS Sentiment Dashboard", layout="wide")
 st.title("📊 SaaS Product Review Sentiment Analysis")
-st.markdown("Welcome! This app allows you to predict sentiment for any review and explore dashboard insights based on real Amazon/Trustpilot reviews.")
+st.markdown("Welcome! This app lets you predict customer sentiment and explore dashboards from real reviews.")
 
-# Sidebar toggle
+# --- Toggle View ---
 mode = st.sidebar.radio("Choose View", ["Live Prediction", "Dashboard"])
 
-# === LIVE PREDICTION ===
+# --- LIVE PREDICTION ---
 if mode == "Live Prediction":
     st.subheader("🔮 Live Sentiment Prediction")
-    st.markdown("✏️ **How to use:** Enter a review below (e.g. _'The software is easy to use and powerful.'_) then click Predict.")
+    st.markdown("**Type a customer review below:** _(e.g., 'This software is buggy and crashes a lot.')_")
 
     user_input = st.text_area("📝 Enter your SaaS review:")
 
@@ -61,11 +61,18 @@ if mode == "Live Prediction":
         else:
             cleaned = clean_text(user_input)
             cleaned = remove_stopwords(cleaned)
+
+            st.write("🧹 Cleaned Input:", cleaned)  # debug
             vect_input = vectorizer.transform([cleaned])
             prediction = model.predict(vect_input)[0]
             probs = model.predict_proba(vect_input)[0]
             confidence = max(probs)
             label = label_encoder.inverse_transform([prediction])[0]
+
+            # Debug info
+            st.write("🔢 Encoded prediction:", prediction)
+            st.write("🧠 Decoded label:", label)
+            st.write("📊 Probabilities:", probs)
 
             color_map = {
                 "Positive": "green",
@@ -73,12 +80,12 @@ if mode == "Live Prediction":
                 "Negative": "red"
             }
 
-            st.markdown(f"<h3 style='color:{color_map[label]}'>✅ Sentiment: {label}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:{color_map.get(label, 'black')}'>✅ Sentiment: {label}</h3>", unsafe_allow_html=True)
             st.markdown(f"🔍 <b>Confidence:</b> `{confidence:.2%}`", unsafe_allow_html=True)
 
-# === DASHBOARD ===
+# --- DASHBOARD ---
 elif mode == "Dashboard":
-    st.subheader("📊 Dashboard Overview")
+    st.subheader("📊 Dashboard Insights")
 
     try:
         with open("model_results.json", "r") as f:
@@ -89,7 +96,6 @@ elif mode == "Dashboard":
 
     model_choice = st.sidebar.selectbox("Select Model to View Results", list(results.keys()))
 
-    # Sentiment distribution
     st.subheader("Sentiment Distribution")
     sentiment_counts = df["sentiment"].value_counts()
     fig1, ax1 = plt.subplots()
@@ -98,20 +104,16 @@ elif mode == "Dashboard":
     ax1.set_ylabel("Number of Reviews")
     st.pyplot(fig1)
 
-    # Pie chart
-    st.subheader("Sentiment Proportion (Pie Chart)")
+    st.subheader("Sentiment Pie Chart")
     fig2, ax2 = plt.subplots()
-    ax2.pie(sentiment_counts.values, labels=sentiment_counts.index, autopct="%1.1f%%",
-            colors=["green", "orange", "red"], startangle=90)
+    ax2.pie(sentiment_counts.values, labels=sentiment_counts.index, autopct="%1.1f%%", colors=["green", "orange", "red"])
     st.pyplot(fig2)
 
-    # Source comparison chart
     st.subheader("Sentiment by Source")
     source_counts = df.groupby(["source", "sentiment"]).size().unstack().fillna(0)
-    source_counts.plot(kind="bar", stacked=True, color=["blue", "lightskyblue", "red"])
+    source_counts.plot(kind="bar", stacked=True, color=["blue", "lightgray", "red"])
     st.pyplot(plt.gcf())
 
-    # Word clouds
     st.subheader("Word Clouds by Sentiment")
     col1, col2, col3 = st.columns(3)
     for sentiment, col in zip(["Positive", "Neutral", "Negative"], [col1, col2, col3]):
@@ -119,8 +121,7 @@ elif mode == "Dashboard":
         wordcloud = WordCloud(width=300, height=200, background_color="white").generate(text)
         col.image(wordcloud.to_array(), caption=sentiment)
 
-    # Top keywords
-    st.subheader("🧠 Top Keywords by Sentiment")
+    st.subheader("Top Keywords by Sentiment")
     for sentiment in ["Positive", "Neutral", "Negative"]:
         st.markdown(f"**{sentiment} Reviews:**")
         subset = df[df["sentiment"] == sentiment]
@@ -128,7 +129,6 @@ elif mode == "Dashboard":
         keywords = pd.Series([w for w in all_words if w not in stop_words]).value_counts().head(10)
         st.dataframe(pd.DataFrame({"Keyword": keywords.index, "Count": keywords.values}))
 
-    # Model Comparison
     st.subheader(f"📈 Model Performance - {model_choice}")
     model_data = results[model_choice]
     st.text("Classification Report")
@@ -142,4 +142,4 @@ elif mode == "Dashboard":
         st.dataframe(conf_matrix)
 
     st.markdown("---")
-    st.caption("Built with Streamlit | Models: Logistic Regression, XGBoost | Data: Amazon & Trustpilot")
+    st.caption("Built with Streamlit | Data from Amazon & Trustpilot | Best Model: XGBoost")
