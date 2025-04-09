@@ -52,7 +52,7 @@
          st.stop()
  except Exception as e:
      st.error(f"❌ Failed to load dataset: {e}")
- @@ -53,99 +47,110 @@
+ @@ -53,99 +47,110 @@ def clean_text(text):
  def remove_stopwords(text):
      return ' '.join([word for word in text.split() if word not in stop_words])
  
