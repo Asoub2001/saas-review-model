@@ -1,12 +1,12 @@
 # app.py
- import streamlit as st
- import pandas as pd
- import matplotlib.pyplot as plt
- from wordcloud import WordCloud
- import json
- import joblib
- import re
- from collections import Counter
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import json
+import joblib
+import re
+from collections import Counter
  
  # --- Hardcoded English stopwords ---
  stop_words = set([
